@@ -8,7 +8,7 @@
 
 1. cd $GOPATH/src
 
-2. git clone https://git-sa.nie.netease.com/atn4517/go_redis_vs_redigo
+2. git clone https://github.com/atn4517/go_redis_vs_redigo
 
 3. cp go_redis_vs_redigo/config.yaml.example config.yaml
 
