@@ -156,68 +156,83 @@ func (g *goRedisTester) runRedis(c chan int) error {
 	if g.redisClient == nil {
 		return errors.New("redisClient is nil")
 	}
-	conn := g.redisClient.Get()
-	defer func() {
-		err := conn.Close()
-		utils.NeverMind(err)
-	}()
-	runClient(conn, c, "redisClient")
-	return nil
+	key := 0
+	for {
+		if len(c) > 0 {
+			<-c
+			return nil
+		}
+		conn := g.redisClient.Get()
+		defer func() {
+			err := conn.Close()
+			utils.NeverMind(err)
+		}()
+		runClient(conn, c, "redisClient", key)
+		time.Sleep(100 * time.Millisecond)
+		key = key + 1
+	}
 }
 
 func (g *goRedisTester) runSentinel(c chan int) error {
 	if g.sentinelClient == nil {
 		return errors.New("sentinelClient is nil")
 	}
-	conn := g.sentinelClient.Get()
-	defer func() {
-		err := conn.Close()
-		utils.NeverMind(err)
-	}()
-	runClient(conn, c, "sentinelClient")
-	return nil
+	key := 0
+	for {
+		if len(c) > 0 {
+			<-c
+			return nil
+		}
+		conn := g.sentinelClient.Get()
+		defer func() {
+			err := conn.Close()
+			utils.NeverMind(err)
+		}()
+		runClient(conn, c, "sentinelClient", key)
+		time.Sleep(100 * time.Millisecond)
+		key = key + 1
+	}
 }
 
 func (g *goRedisTester) runCluster(c chan int) error {
 	if g.clusterClient == nil {
 		return errors.New("clusterClient is nil")
 	}
-	runClient(g.clusterClient, c, "clusterClient")
-	return nil
+	key := 0
+	for {
+		if len(c) > 0 {
+			<-c
+			return nil
+		}
+		runClient(g.clusterClient, c, "clusterClient", key)
+		time.Sleep(100 * time.Millisecond)
+		key = key + 1
+	}
 }
 
 type goRedisClient interface {
 	Do(string, ...interface{}) (interface{}, error)
 }
 
-func runClient(client goRedisClient, c chan int, clientType string) {
+func runClient(client goRedisClient, c chan int, clientType string, key int) {
 	logger := utils.GetLogger()
-	key := 0
-	for {
-		if len(c) > 0 {
-			<-c
-			return
-		}
-		keyStr := strconv.Itoa(key)
-		valueStr := strconv.Itoa(key + 100)
-		_, err := client.Do("SET", keyStr, valueStr)
-		if err != nil {
-			logger.Errorf("%s error: %+v", clientType, err)
+	keyStr := strconv.Itoa(key)
+	valueStr := strconv.Itoa(key + 100)
+	_, err := client.Do("SET", keyStr, valueStr)
+	if err != nil {
+		logger.Errorf("%s error: %+v", clientType, err)
+	} else {
+		logger.Infof("%s Set: %s -> %s", clientType, keyStr, valueStr)
+	}
+	res, err := client.Do("GET", keyStr)
+	if err != nil {
+		logger.Errorf("%s error: %+v", clientType, err)
+	} else {
+		resInt, transError := redigo.Int(res, err)
+		if transError != nil {
+			logger.Errorf("%s trans error: %+v", clientType, transError)
 		} else {
-			logger.Infof("%s Set: %s -> %s", clientType, keyStr, valueStr)
+			logger.Infof("%s Get: %s -> %d", clientType, keyStr, resInt)
 		}
-		res, err := client.Do("GET", keyStr)
-		if err != nil {
-			logger.Errorf("%s error: %+v", clientType, err)
-		} else {
-			resInt, transError := redigo.Int(res, err)
-			if transError != nil {
-				logger.Errorf("%s trans error: %+v", clientType, transError)
-			} else {
-				logger.Infof("%s Get: %s -> %d", clientType, keyStr, resInt)
-			}
-		}
-		time.Sleep(100 * time.Millisecond)
-		key = key + 1
 	}
 }
