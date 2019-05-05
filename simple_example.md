@@ -20,7 +20,7 @@ redisClient := goRedis.NewClient(&goRedis.Options{
 	PoolSize: 10000,
 })
 
-// 创建 sentinel 类型 Redis 服务连接对象
+// 创建 Sentinel 类型 Redis 服务连接对象
 sentinelClient := goRedis.NewFailoverClient(&goRedis.FailoverOptions{
 	MasterName:    "test_master",
 	SentinelAddrs: []string{"127.0.0.1:26379", "127.0.0.1:26380", "127.0.0.1:26381"},
@@ -29,7 +29,7 @@ sentinelClient := goRedis.NewFailoverClient(&goRedis.FailoverOptions{
 	PoolSize:      10000,
 })
 
-// 创建 cluster 类型 Redis 服务连接对象
+// 创建 Cluster 类型 Redis 服务连接对象
 clusterClient := goRedis.NewClusterClient(&goRedis.ClusterOptions{
 	Addrs: []string{
 		"127.0.0.1:6379", "127.0.0.1:6380", "127.0.0.1:6381",
@@ -118,7 +118,7 @@ redisClient := &redigo.Pool{
 conn := redisClient.Get()
 // 将连接归还
 defer conn.Close()
-// 操作 redis
+// 操作 Redis
 _, err1 := conn.Do("SET", "key", "1")
 res, err2 := conn.Do("GET", "key")
 resInt, transError := redigo.Int(res, err2)
