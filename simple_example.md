@@ -51,7 +51,7 @@ func runClient(client goRedisClient) {
 	if err != nil {
 		doSomething(err)
 	}
-	res := client.Get(keyStr)
+	res := client.Get("key")
 	fmt.Println(res.String())
 }
 
