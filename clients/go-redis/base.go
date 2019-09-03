@@ -23,6 +23,8 @@ func (g *goRedisTester) createRedisClient() {
 			Password: g.baseTester.RedisOption.Password,
 			DB:       g.baseTester.RedisOption.DataBase,
 			PoolSize: 10000,
+			MaxConnAge: 3600,
+			IdleCheckFrequency: 600
 		})
 	}
 }
@@ -43,6 +45,8 @@ func (g *goRedisTester) createSentinelClient() {
 			Password:      g.baseTester.SentinelOption.Password,
 			DB:            g.baseTester.SentinelOption.DataBase,
 			PoolSize:      10000,
+			MaxConnAge: 3600,
+			IdleCheckFrequency: 600
 		})
 	}
 }
@@ -61,6 +65,8 @@ func (g *goRedisTester) createClusterClient() {
 			Addrs:    AddrArray,
 			Password: g.baseTester.ClusterOption.Password,
 			PoolSize: 10000,
+			MaxConnAge: 3600,
+			IdleCheckFrequency: 600
 		})
 	}
 }
